@@ -6,8 +6,7 @@ import (
 )
 
 func Test_GetListing(t *testing.T) {
-	sut := Nasdaq{}
-	symbols, err := sut.GetSymbolList()
+	symbols, err := GetSymbolList()
 	assert.Nil(t, err)
 
 	assert.NotEmpty(t, symbols)

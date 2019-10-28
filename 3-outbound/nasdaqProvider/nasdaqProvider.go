@@ -7,51 +7,107 @@ import (
 	"strings"
 )
 
-func New() error {
-	return nil
-}
-
-type Nasdaq struct {}
-
-type SymbolDto struct {
-	Symbol string
-	SecurityName string
-	MarketCategory string
-	TestIssue string
+type nasdaqListedSymbols struct {
+	Symbol          string
+	SecurityName    string
+	MarketCategory  string
+	TestIssue       string
 	FinancialStatus string
-	RoundLotSize string
-	Etf string
-	NextShares string
+	RoundLotSize    string
+	Etf             string
+	NextShares      string
 }
 
-func (nasdaq *Nasdaq) GetSymbolList() ([]string, error) {
-	listedResponse, err := nasdaq.getCsv("symboldirectory/nasdaqlisted.txt")
+type nasdaqUnlistedSymbols struct {
+	ActSymbol    string
+	SecurityName string
+	Exchange     string
+	CqsSymbol    string
+	Etf          string
+	RoundLotSize string
+	TestIssue    string
+	NasdaqSymbol string
+}
+
+func GetSymbolList() ([]string, error) {
+	listedSymbols, err := getListedSymbols()
 	if err != nil {
 		return nil, err
 	}
 
-	listedSymbols, err := nasdaq.readCsv(listedResponse)
-
-	otherListedResponse, err := nasdaq.getCsv("symboldirectory/otherlisted.txt")
+	unlistedSymbols, err := getUnlistedListedSymbols()
 	if err != nil {
 		return nil, err
-	}
-
-	otherSymbols, err := nasdaq.readCsv(otherListedResponse)
-
-	for key, value := range otherSymbols {
-		listedSymbols[key] = value
 	}
 
 	keys := make([]string, 0, len(listedSymbols))
 	for key := range listedSymbols {
 		keys = append(keys, key)
 	}
+	for key := range unlistedSymbols {
+		keys = append(keys, key)
+	}
 
 	return keys, nil
 }
 
-func (nasdaq *Nasdaq) getCsv(path string) (*ftp.Response, error) {
+func getListedSymbols() (map[string]nasdaqListedSymbols, error) {
+	listedResponse, err := getFtpFile("symboldirectory/nasdaqlisted.txt")
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := readCsv(listedResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	symbols := make(map[string]nasdaqListedSymbols)
+	for _, row := range rows {
+		symbols[row[0]] = nasdaqListedSymbols{
+			Symbol:          row[0],
+			SecurityName:    row[1],
+			MarketCategory:  row[2],
+			TestIssue:       row[3],
+			FinancialStatus: row[4],
+			RoundLotSize:    row[5],
+			Etf:             row[6],
+			NextShares:      row[7],
+		}
+	}
+
+	return symbols, nil
+}
+
+func getUnlistedListedSymbols() (map[string]nasdaqUnlistedSymbols, error) {
+	listedResponse, err := getFtpFile("symboldirectory/otherlisted.txt")
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := readCsvRowWise(listedResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	symbols := make(map[string]nasdaqUnlistedSymbols)
+	for _, row := range rows {
+		symbols[row[0]] = nasdaqUnlistedSymbols{
+			ActSymbol:    row[0],
+			SecurityName: row[1],
+			Exchange:     row[2],
+			CqsSymbol:    row[3],
+			Etf:          row[4],
+			RoundLotSize: row[5],
+			TestIssue:    row[6],
+			NasdaqSymbol: row[7],
+		}
+	}
+
+	return symbols, nil
+}
+
+func getFtpFile(path string) (*ftp.Response, error) {
 	client, err := ftp.Dial("ftp.nasdaqtrader.com:21")
 	if err != nil {
 		return nil, err
@@ -65,10 +121,16 @@ func (nasdaq *Nasdaq) getCsv(path string) (*ftp.Response, error) {
 	return client.Retr(path)
 }
 
-func (nasdaq *Nasdaq) readCsv(fileReader io.Reader) (map[string]SymbolDto, error)  {
+func readCsv(fileReader io.Reader) ([][]string, error) {
 	csvr := csv.NewReader(fileReader)
 	csvr.Comma = '|'
-	symbols := make(map[string]SymbolDto)
+	result, err := csvr.ReadAll()
+	return result, err
+}
+
+func readCsvRowWise(fileReader io.Reader) ([][]string, error) {
+	csvr := csv.NewReader(fileReader)
+	csvr.Comma = '|'
 
 	// Skip header row
 	_, err := csvr.Read()
@@ -76,26 +138,25 @@ func (nasdaq *Nasdaq) readCsv(fileReader io.Reader) (map[string]SymbolDto, error
 		return nil, err
 	}
 
+	var csvRows [][]string
 	for {
 		row, err := csvr.Read()
+		// Last line of file has wrong structure
+		if err != nil && strings.HasSuffix(err.Error(), "wrong number of fields") {
+			err = nil
+			break
+		}
 		if err != nil {
 			return nil, err
 		}
 
 		// End of file
-		if strings.HasPrefix(row[0], "File Creation Time:") {
-			return symbols, nil
+		if strings.HasPrefix(row[0], "File Creation Time") {
+			break
 		}
 
-		symbols[row[0]] = SymbolDto{
-			Symbol:          row[0],
-			SecurityName:    row[1],
-			MarketCategory:  row[2],
-			TestIssue:       row[3],
-			FinancialStatus: row[4],
-			RoundLotSize:    row[5],
-			Etf:             row[6],
-			NextShares:      row[7],
-		}
+		csvRows = append(csvRows, row)
 	}
+
+	return csvRows, nil
 }
