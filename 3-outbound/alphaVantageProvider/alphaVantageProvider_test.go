@@ -13,7 +13,7 @@ func Test_AlphaVantageDailyRecent_GivenSymbol_ShouldNotError(t *testing.T) {
 	sut, err := New("demo", http.Client{})
 	assert.Nil(t, err)
 
-	result, err := sut.GetDailyRecent("MSFT")
+	result, err := sut.GetDailyStockPriceHistory20d("MSFT")
 	assert.Nil(t, err)
 
 	assert.NotEqual(t, 0, len(result))
@@ -55,7 +55,7 @@ func Test_AlphaVantageDailyRecent_GivenSymbol_CallCorrectUrl(t *testing.T) {
 	sut, err := New("demo", *client)
 	assert.Nil(t, err)
 
-	_, _ = sut.GetDailyRecent("MSFT")
+	_, _ = sut.GetDailyStockPriceHistory20d("MSFT")
 }
 
 func Test_AlphaVantageDaily_GivenSymbol_CallCorrectUrl(t *testing.T) {
@@ -71,5 +71,5 @@ func Test_AlphaVantageDaily_GivenSymbol_CallCorrectUrl(t *testing.T) {
 	sut, err := New("demo", *client)
 	assert.Nil(t, err)
 
-	_, _ = sut.GetDaily("MSFT")
+	_, _ = sut.GetDailyStockPriceHistory20y("MSFT")
 }

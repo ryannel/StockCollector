@@ -1,20 +1,19 @@
 package outboundProviders
 
 import (
-    "time"
+	"time"
 )
 
 type StockProviderInterface interface {
-    GetDaily(symbol string) (StockPriceSeries, error)
-    GetDailyRecent(symbol string) (StockPriceSeries, error)
+	GetDailyStockPriceHistory20y(symbol string) ([]StockPriceSnapshot, error)
+	GetDailyStockPriceHistory20d(symbol string) ([]StockPriceSnapshot, error)
 }
 
-type StockPriceSeries map[time.Time]StockPriceSnapshot
-
 type StockPriceSnapshot struct {
-    Open   float64
-    High   float64
-    Low    float64
-    Close  float64
-    Volume float64
+	DateTime time.Time
+	Open     float64
+	High     float64
+	Low      float64
+	Close    float64
+	Volume   int
 }

@@ -3,6 +3,7 @@ package helpers
 import (
 	"fmt"
 	"net/url"
+	"path"
 )
 
 func NewHttpRequestBuilder(baseUrl string) (HttpRequestBuilder, error)  {
@@ -28,12 +29,16 @@ type HttpRequestBuilder struct{
 	params url.Values
 }
 
-func (request *HttpRequestBuilder) AddQueryParameter(key string, value string) {
-	request.params.Add(key, value)
+func (builder *HttpRequestBuilder) AddQueryParameter(key string, value string) {
+	builder.params.Add(key, value)
 }
 
-func (request *HttpRequestBuilder) GetUrl() string {
-	request.baseUrl.RawQuery = request.params.Encode()
-	return request.baseUrl.String()
+func (builder *HttpRequestBuilder) AppendPath(newPath string) {
+	builder.baseUrl.Path = path.Join(builder.baseUrl.Path, newPath)
+}
+
+func (builder *HttpRequestBuilder) GetUrl() string {
+	builder.baseUrl.RawQuery = builder.params.Encode()
+	return builder.baseUrl.String()
 }
 

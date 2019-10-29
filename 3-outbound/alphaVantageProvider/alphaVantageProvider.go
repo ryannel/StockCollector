@@ -23,24 +23,22 @@ func New(apiKey string, httpClient http.Client) (AlphaVantageProvider, error) {
 	requestBuilder.AddQueryParameter("apikey", apiKey)
 
 	return AlphaVantageProvider{
-		apiKey:         apiKey,
 		requestBuilder: requestBuilder,
 		httpClient:     httpClient,
 	}, nil
 }
 
 type AlphaVantageProvider struct {
-	apiKey         string
 	httpClient     http.Client
 	requestBuilder helpers.HttpRequestBuilder
 }
 
-func (provider *AlphaVantageProvider) GetDaily(symbol string) (outboundProviders.StockPriceSeries, error) {
+func (provider *AlphaVantageProvider) GetDailyStockPriceHistory20y(symbol string) (outboundProviders.StockPriceSeries, error) {
 	provider.requestBuilder.AddQueryParameter("outputsize", "full")
 	return provider.getDailyFormat(symbol)
 }
 
-func (provider *AlphaVantageProvider) GetDailyRecent(symbol string) (outboundProviders.StockPriceSeries, error) {
+func (provider *AlphaVantageProvider) GetDailyStockPriceHistory20d(symbol string) (outboundProviders.StockPriceSeries, error) {
 	return provider.getDailyFormat(symbol)
 }
 

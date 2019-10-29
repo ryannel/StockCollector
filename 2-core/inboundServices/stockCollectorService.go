@@ -5,7 +5,7 @@ import (
 )
 
 func CollectStock(stockProvider outboundProviders.StockProviderInterface) error {
-	response, err := stockProvider.GetDaily("MSFT")
+	response, err := stockProvider.GetDailyStockPriceHistory20y("MSFT")
 
 	_ = response
 	return err

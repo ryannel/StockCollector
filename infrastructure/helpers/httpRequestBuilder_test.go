@@ -46,3 +46,32 @@ func Test_AddParams_GivenParams_ShouldBeAddedToUrl(t *testing.T) {
 	assert.Equal(t, "value2", sut.params["key2"][0])
 	assert.Equal(t, "http://testUrl?key1=value1&key2=value2", sut.GetUrl())
 }
+
+func Test_AppendPath_GivenValidPath_ShouldAppendCorrectly(t *testing.T) {
+	sut, err := NewHttpRequestBuilder("http://testUrl/path1")
+	assert.Nil(t, err)
+	assert.Equal(t, "/path1", sut.baseUrl.Path)
+
+	sut, err = NewHttpRequestBuilder("http://testUrl")
+	assert.Nil(t, err)
+	assert.Equal(t, "", sut.baseUrl.Path)
+
+	sut.AppendPath("path1")
+	assert.Equal(t, "path1", sut.baseUrl.Path)
+
+	sut.AddQueryParameter("key1", "value1")
+	assert.Equal(t, "http://testUrl/path1?key1=value1", sut.GetUrl())
+
+	sut.AppendPath("path2")
+	assert.Equal(t, "path1/path2", sut.baseUrl.Path)
+	assert.Equal(t, "http://testUrl/path1/path2?key1=value1", sut.GetUrl())
+}
+
+func Test_AppendPath_GivenMultiplePaths_ShouldAppendCorrectly(t *testing.T) {
+	sut, err := NewHttpRequestBuilder("http://testUrl")
+	assert.Nil(t, err)
+	assert.Equal(t, "", sut.baseUrl.Path)
+
+	sut.AppendPath("path1/path2")
+	assert.Equal(t, "path1/path2", sut.baseUrl.Path)
+}
