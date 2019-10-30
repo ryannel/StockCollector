@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"testing"
-	"time"
 )
 
 func Test_AlphaVantageDailyRecent_GivenSymbol_ShouldNotError(t *testing.T) {
@@ -18,16 +17,11 @@ func Test_AlphaVantageDailyRecent_GivenSymbol_ShouldNotError(t *testing.T) {
 
 	assert.NotEqual(t, 0, len(result))
 
-	var key time.Time
-	for k := range result {
-		key = k
-	}
-
-	assert.NotEqual(t, float64(0), result[key].Volume)
-	assert.NotEqual(t, float64(0), result[key].High)
-	assert.NotEqual(t, float64(0), result[key].Low)
-	assert.NotEqual(t, float64(0), result[key].Open)
-	assert.NotEqual(t, float64(0), result[key].Close)
+	assert.NotEqual(t, float64(0), result[0].Volume)
+	assert.NotEqual(t, float64(0), result[0].High)
+	assert.NotEqual(t, float64(0), result[0].Low)
+	assert.NotEqual(t, float64(0), result[0].Open)
+	assert.NotEqual(t, float64(0), result[0].Close)
 }
 
 type RoundTripFunc func(req *http.Request) *http.Response

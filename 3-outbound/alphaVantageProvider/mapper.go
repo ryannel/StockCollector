@@ -1,47 +1,49 @@
 package alphaVantageProvider
 
 import (
+	"math"
 	"stockCollector/2-core/outboundProviders"
-	"stockCollector/3-outbound/alphaVantageProvider/dto"
 	"strconv"
 )
 
-func mapResponse(src dto.TimeSeriesDailyDto) (outboundProviders.StockPriceSeries,  error) {
-	result := outboundProviders.StockPriceSeries{}
+func mapResponse(src TimeSeriesDailyDto) ([]outboundProviders.StockPriceSnapshot,  error) {
+	result := make([]outboundProviders.StockPriceSnapshot, len(src.TimeSeriesDaily))
 
+	i := 0
 	for key, value := range src.TimeSeriesDaily {
 		open, err :=  strconv.ParseFloat(value.Open, 64)
 		if err != nil {
-			return outboundProviders.StockPriceSeries{}, err
+			return nil, err
 		}
 
 		high, err :=  strconv.ParseFloat(value.High, 64)
 		if err != nil {
-			return outboundProviders.StockPriceSeries{}, err
+			return nil, err
 		}
 
 		low, err :=  strconv.ParseFloat(value.Low, 64)
 		if err != nil {
-			return outboundProviders.StockPriceSeries{}, err
+			return nil, err
 		}
 
 		close, err :=  strconv.ParseFloat(value.Close, 64)
 		if err != nil {
-			return outboundProviders.StockPriceSeries{}, err
+			return nil, err
 		}
 
 		volume, err :=  strconv.ParseFloat(value.Volume, 64)
 		if err != nil {
-			return outboundProviders.StockPriceSeries{}, err
+			return nil, err
 		}
 
-		result[key.Time] = outboundProviders.StockPriceSnapshot{
-			Open:   open,
-			High:   high,
-			Low:    low,
-			Close:  close,
-			Volume: volume,
-		}
+		result[i].DateTime = key.Time
+		result[i].Open = open
+		result[i].High = high
+		result[i].Low = low
+		result[i].Close = close
+		result[i].Volume = int(math.Round(volume))
+
+		i++
 	}
 
 	return result, nil

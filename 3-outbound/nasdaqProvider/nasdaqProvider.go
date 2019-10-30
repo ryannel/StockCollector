@@ -40,7 +40,7 @@ func GetSymbolList() ([]string, error) {
 		return nil, err
 	}
 
-	keys := make([]string, 0, len(listedSymbols))
+	keys := make([]string, 0, len(listedSymbols) + len(unlistedSymbols))
 	for key := range listedSymbols {
 		keys = append(keys, key)
 	}

@@ -17,3 +17,13 @@ type StockPriceSnapshot struct {
 	Close    float64
 	Volume   int
 }
+
+type Company struct {
+	CompanyName  string
+	Industry     string
+	Sector       string
+	Symbol       string
+	Exchange     string
+	Cusip        string
+	PriceHistory []StockPriceSnapshot
+}

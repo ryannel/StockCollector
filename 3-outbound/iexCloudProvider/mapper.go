@@ -2,11 +2,10 @@ package iexCloudProvider
 
 import (
 	"stockCollector/2-core/outboundProviders"
-	"stockCollector/3-outbound/iexCloudProvider/dto"
 	"time"
 )
 
-func mapStockPriceSnapshots(src []dto.StockPriceSnapshotDto) ([]outboundProviders.StockPriceSnapshot,  error) {
+func mapStockPriceSnapshots(src []StockPriceSnapshotDto) ([]outboundProviders.StockPriceSnapshot,  error) {
 	results := make([]outboundProviders.StockPriceSnapshot, len(src))
 
 	for i, value := range src {
@@ -26,4 +25,16 @@ func mapStockPriceSnapshots(src []dto.StockPriceSnapshotDto) ([]outboundProvider
 	}
 
 	return results, nil
+}
+
+func mapCompany(company CompanyDto) (outboundProviders.Company, error) {
+	return outboundProviders.Company{
+		CompanyName:  company.CompanyName,
+		Industry:     company.Industry,
+		Sector:       company.Sector,
+		Symbol:       company.Symbol,
+		Exchange:     company.Exchange,
+		Cusip:        "",
+		PriceHistory: nil,
+	}, nil
 }
