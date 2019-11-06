@@ -27,6 +27,12 @@ func TestNasdaqProvider_GetPriceHistory_ShouldNotBeEmpty(t *testing.T) {
 	assert.NotEmpty(t, history[0].Volume)
 }
 
+func TestNasdaqProvider_GetPriceHistory_GivenBadSymbol_ShouldError(t *testing.T) {
+	sut := New(http.Client{})
+	_, err := sut.GetPriceHistory("asdfasdfvxcv")
+	assert.NotNil(t, err)
+}
+
 func TestNasdaqProvider_GetCompanyInfo_ShouldNotBeEmpty(t *testing.T) {
 	sut := New(http.Client{})
 	company, err := sut.GetCompanyInfo("AAPL")

@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"stockCollector/2-core/outboundProviders"
 )
 
 func New(outputDir string) (JsonWriter, error) {
@@ -23,28 +22,9 @@ type JsonWriter struct {
 	outputDir string
 }
 
-func (writer *JsonWriter) WriteCompany(company outboundProviders.Company, fileName string) error {
+func (writer *JsonWriter) WriteJson(companies interface{}, fileName string) error {
 	if writer.outputDir == "" {
 		return errors.New("output directory must be set")
-	}
-
-	err := os.MkdirAll(writer.outputDir, os.ModePerm)
-	if err != nil {
-		return err
-	}
-
-	jsonByte, err := json.Marshal(company)
-	return writer.writeFile(jsonByte, fileName)
-}
-
-func (writer *JsonWriter) WriteCompanies(companies []outboundProviders.Company, fileName string) error {
-	if writer.outputDir == "" {
-		return errors.New("output directory must be set")
-	}
-
-	err := os.MkdirAll(writer.outputDir, os.ModePerm)
-	if err != nil {
-		return err
 	}
 
 	jsonByte, err := json.Marshal(companies)
@@ -52,10 +32,23 @@ func (writer *JsonWriter) WriteCompanies(companies []outboundProviders.Company, 
 		return err
 	}
 
-	return writer.writeFile(jsonByte, fileName)
+	err = os.MkdirAll(writer.outputDir, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	outputFilePath := filepath.Join(writer.outputDir, fileName)
+
+	return ioutil.WriteFile(outputFilePath, jsonByte, os.ModePerm)
 }
 
-func (writer *JsonWriter) writeFile(json []byte, fileName string) error {
-	outputFilePath := filepath.Join(writer.outputDir, fileName)
-	return ioutil.WriteFile(outputFilePath, json, os.ModePerm)
+func (writer *JsonWriter) ReadJson(fileName string, t interface{}) error {
+	if writer.outputDir == "" {
+		return errors.New("output directory must be set")
+	}
+
+	readFilePath := filepath.Join(writer.outputDir, fileName)
+	jsonByte, _ := ioutil.ReadFile(readFilePath)
+
+	err := json.Unmarshal(jsonByte, &t)
+	return err
 }

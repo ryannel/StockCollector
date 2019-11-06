@@ -73,6 +73,10 @@ func (provider *NasdaqProvider) GetPriceHistory(symbol string) ([]outboundProvid
 		return nil, fmt.Errorf("unable to parse json httpResponse from Nasdaq - Error: %w", err)
 	}
 
+	if len(responseData.Status.BCodeMessage) != 0 {
+		return nil, fmt.Errorf("nasdaq error processing request: %s", responseData.Status.BCodeMessage[0].ErrorMessage)
+	}
+
 	return mapStockPriceSnapshots(responseData)
 }
 

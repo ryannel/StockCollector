@@ -37,8 +37,13 @@ type SymbolData struct {
 
 type Status struct {
 	RCode            int         `json:"rCode"`
-	BCodeMessage     interface{} `json:"bCodeMessage"`
+	BCodeMessage     []BCodeMessage `json:"bCodeMessage"`
 	DeveloperMessage interface{} `json:"developerMessage"`
+}
+
+type BCodeMessage struct {
+	Code         int    `json:"code"`
+	ErrorMessage string `json:"errorMessage"`
 }
 
 type CompanyInfoDto struct {

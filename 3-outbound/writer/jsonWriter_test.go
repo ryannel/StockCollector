@@ -48,7 +48,7 @@ func TestWriter_ShouldWriteCompany(t *testing.T) {
 	}
 
 	outputFile := "testCompany.json"
-	err = sut.WriteCompany(insertCmp, outputFile)
+	err = sut.WriteJson(insertCmp, outputFile)
 	assert.Nil(t, err)
 
 	jsonByte, _ := ioutil.ReadFile(outputFile)
@@ -94,7 +94,84 @@ func TestWriter_ShouldWriteCompanies(t *testing.T) {
 	fixedTime, err := time.Parse("2006-01-02", "2019-01-02")
 	assert.Nil(t, err)
 
-	insertCompanies := []outboundProviders.Company{
+	insertCompanies := getCompanyList(fixedTime)
+
+	outputFile := "testCompanies.json"
+	err = sut.WriteJson(insertCompanies, outputFile)
+	assert.Nil(t, err)
+
+	jsonByte, _ := ioutil.ReadFile(outputFile)
+	var resultCompanies []outboundProviders.Company
+	err = json.Unmarshal(jsonByte, &resultCompanies)
+	assert.Nil(t, err)
+
+	assert.Equal(t, 2, len(resultCompanies))
+
+	for i, company := range resultCompanies {
+		if company.CompanyName == "companyName" {
+			assert.Equal(t, "companyName", resultCompanies[i].CompanyName)
+			assert.Equal(t, "sector", resultCompanies[i].Sector)
+			assert.Equal(t, "symbol", resultCompanies[i].Symbol)
+			assert.Equal(t, "exchange", resultCompanies[i].Exchange)
+			assert.Equal(t, 2, len(resultCompanies[i].PriceHistory))
+
+		} else {
+			assert.Equal(t, "companyName2", resultCompanies[i].CompanyName)
+			assert.Equal(t, "sector2", resultCompanies[i].Sector)
+			assert.Equal(t, "symbol2", resultCompanies[i].Symbol)
+			assert.Equal(t, "exchange2", resultCompanies[i].Exchange)
+			assert.Equal(t, 2, len(resultCompanies[i].PriceHistory))
+		}
+	}
+
+	err = os.Remove(outputFile)
+	assert.Nil(t, err)
+}
+
+func TestJsonWriter_ReadJson(t *testing.T) {
+	fixedTime, err := time.Parse("2006-01-02", "2019-01-02")
+	assert.Nil(t, err)
+
+	wd, err := os.Getwd()
+	assert.Nil(t, err)
+
+	sut, err := New(wd)
+	assert.Nil(t, err)
+
+	insertCompanies := getCompanyList(fixedTime)
+
+
+	outputFile := "readerTest.json"
+	err = sut.WriteJson(insertCompanies, outputFile)
+	assert.Nil(t, err)
+
+	var resultCompanies []outboundProviders.Company
+	err = sut.ReadJson("readerTest.json", &resultCompanies)
+	assert.Nil(t, err)
+
+	for i, company := range resultCompanies {
+		if company.CompanyName == "companyName" {
+			assert.Equal(t, "companyName", resultCompanies[i].CompanyName)
+			assert.Equal(t, "sector", resultCompanies[i].Sector)
+			assert.Equal(t, "symbol", resultCompanies[i].Symbol)
+			assert.Equal(t, "exchange", resultCompanies[i].Exchange)
+			assert.Equal(t, 2, len(resultCompanies[i].PriceHistory))
+
+		} else {
+			assert.Equal(t, "companyName2", resultCompanies[i].CompanyName)
+			assert.Equal(t, "sector2", resultCompanies[i].Sector)
+			assert.Equal(t, "symbol2", resultCompanies[i].Symbol)
+			assert.Equal(t, "exchange2", resultCompanies[i].Exchange)
+			assert.Equal(t, 2, len(resultCompanies[i].PriceHistory))
+		}
+	}
+
+	err = os.Remove(outputFile)
+	assert.Nil(t, err)
+}
+
+func getCompanyList(fixedTime time.Time) []outboundProviders.Company {
+	return []outboundProviders.Company{
 		{
 			CompanyName:  "companyName",
 			Industry:     "industry",
@@ -147,35 +224,4 @@ func TestWriter_ShouldWriteCompanies(t *testing.T) {
 			},
 		},
 	}
-
-	outputFile := "testCompanies.json"
-	err = sut.WriteCompanies(insertCompanies, outputFile)
-	assert.Nil(t, err)
-
-	jsonByte, _ := ioutil.ReadFile(outputFile)
-	var resultCompanies []outboundProviders.Company
-	err = json.Unmarshal(jsonByte, &resultCompanies)
-	assert.Nil(t, err)
-
-	assert.Equal(t, 2, len(resultCompanies))
-
-	for i, company := range resultCompanies {
-		if company.CompanyName == "companyName" {
-			assert.Equal(t, "companyName", resultCompanies[i].CompanyName)
-			assert.Equal(t, "sector", resultCompanies[i].Sector)
-			assert.Equal(t, "symbol", resultCompanies[i].Symbol)
-			assert.Equal(t, "exchange", resultCompanies[i].Exchange)
-			assert.Equal(t, 2, len(resultCompanies[i].PriceHistory))
-
-		} else {
-			assert.Equal(t, "companyName2", resultCompanies[i].CompanyName)
-			assert.Equal(t, "sector2", resultCompanies[i].Sector)
-			assert.Equal(t, "symbol2", resultCompanies[i].Symbol)
-			assert.Equal(t, "exchange2", resultCompanies[i].Exchange)
-			assert.Equal(t, 2, len(resultCompanies[i].PriceHistory))
-		}
-	}
-
-	err = os.Remove(outputFile)
-	assert.Nil(t, err)
 }
