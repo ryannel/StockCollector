@@ -1,13 +1,30 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"stockCollector/2-core/outboundProviders"
 	"stockCollector/3-outbound/nasdaqProvider"
-	writer "stockCollector/3-outbound/writer"
+	"stockCollector/3-outbound/writer"
+	"strconv"
+	"time"
 )
+
+type ComplexError struct {
+	Message string
+	Code    int
+}
+
+func (ce ComplexError) Format(f fmt.State, c rune) {
+	_, _ = f.Write([]byte("test format"))
+}
+
+func (ce ComplexError) Error() string {
+	return fmt.Sprint(ce)
+}
 
 func main() {
 	//conf, err := config.ParseConfig()
@@ -15,7 +32,7 @@ func main() {
 	//	log.Panic(err)
 	//}
 	//
-	//stockCollector, err := alphaVantageProvider.New(conf.AlphaVantage.ApiKey, http.Client{})
+	//stockCollector, err := alphaVantageProvider.NewJsonWriter(conf.AlphaVantage.ApiKey, http.Client{})
 	//if err != nil {
 	//	log.Panic(err)
 	//}
@@ -26,13 +43,13 @@ func main() {
 		log.Panic(err)
 	}
 
-	companies, err := paralelFetch(symbols[0:5000], 5)
+	companies, err := paralelFetch(symbols[0:5000], 1)
 
 	wd, err := os.Getwd()
 	if err != nil {
 		log.Panic(err)
 	}
-	outputWriter, err := writer.New(wd)
+	outputWriter, err := writer.NewJsonWriter(wd)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -64,37 +81,37 @@ func paralelFetch(symbols []string, concurrency int) ([]outboundProviders.Compan
 	close(jobsChan)
 
 	companies := make([]outboundProviders.Company, numSymbols)
-
 	for i := 1; i <= numSymbols; i++ {
 		result := <- resultsChan
-		if result.Err == nil {
+		if result.Err != nil {
+			log.Println("error loading price history for: " + result.Company.Symbol + " - " + result.Err.Error())
+		} else {
 			companies = append(companies, result.Company)
-			//return nil, result.Err
 		}
 	}
 
 	return companies, nil
 }
 
-func worker(jobChan <- chan string, results chan <- Result) {
+func worker(jobChan <- chan string, resultChan chan <- Result) {
 	nasdaq := nasdaqProvider.New(http.Client{})
 
 	for symbol := range jobChan {
 		log.Println("fetching price history for: " + symbol)
 		history, err := nasdaq.GetPriceHistory(symbol)
 
-		if err != nil {
-			log.Println("error loading price history for: " + symbol + " - " + err.Error())
-		}
-
 		company := outboundProviders.Company{
 			Symbol:       symbol,
 			PriceHistory: history,
 		}
 
-		results <- Result{
+		resultChan <- Result{
 			Company: company,
 			Err: err,
 		}
+
+		r := rand.Intn(3)
+		log.Println("Sleeping for: " + strconv.Itoa(r) + " seconds")
+		time.Sleep(time.Duration(r) * time.Second)
 	}
 }

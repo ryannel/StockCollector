@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-func New(outputDir string) (JsonWriter, error) {
+func NewJsonWriter(outputDir string) (JsonWriter, error) {
 	if outputDir == "" {
 		return JsonWriter{}, errors.New("output directory must be set")
 	}
@@ -27,18 +27,18 @@ func (writer *JsonWriter) WriteJson(companies interface{}, fileName string) erro
 		return errors.New("output directory must be set")
 	}
 
-	jsonByte, err := json.Marshal(companies)
+	err := os.MkdirAll(writer.outputDir, os.ModePerm)
 	if err != nil {
 		return err
 	}
 
-	err = os.MkdirAll(writer.outputDir, os.ModePerm)
-	if err != nil {
-		return err
-	}
 	outputFilePath := filepath.Join(writer.outputDir, fileName)
 
-	return ioutil.WriteFile(outputFilePath, jsonByte, os.ModePerm)
+	file, _ := os.OpenFile(outputFilePath, os.O_CREATE | os.O_TRUNC, os.ModePerm)
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	return encoder.Encode(companies)
 }
 
 func (writer *JsonWriter) ReadJson(fileName string, t interface{}) error {

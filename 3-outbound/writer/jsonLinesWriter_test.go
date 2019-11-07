@@ -1,20 +1,25 @@
 package writer
 
 import (
+	"bufio"
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"stockCollector/2-core/outboundProviders"
 	"testing"
 	"time"
 )
 
-func TestWriter_ShouldWriteCompany(t *testing.T) {
+func TestLinesWriter_ShouldWriteCompany(t *testing.T) {
 	wd, err := os.Getwd()
 	assert.Nil(t, err)
 
-	sut, err := NewJsonWriter(wd)
+	outputFilePath := filepath.Join(wd, "testCompany.jsonl")
+
+	sut, err := NewJsonLinesWriter(outputFilePath)
 	assert.Nil(t, err)
 
 	fixedTime, err := time.Parse("2006-01-02", "2019-01-02")
@@ -47,11 +52,12 @@ func TestWriter_ShouldWriteCompany(t *testing.T) {
 		},
 	}
 
-	outputFile := "testCompany.json"
-	err = sut.WriteJson(insertCmp, outputFile)
+	err = sut.AppendLine(insertCmp)
 	assert.Nil(t, err)
 
-	jsonByte, _ := ioutil.ReadFile(outputFile)
+	jsonByte, err := ioutil.ReadFile(outputFilePath)
+	assert.Nil(t, err)
+
 	var resultCompany outboundProviders.Company
 	err = json.Unmarshal(jsonByte, &resultCompany)
 	assert.Nil(t, err)
@@ -80,15 +86,18 @@ func TestWriter_ShouldWriteCompany(t *testing.T) {
 		}
 	}
 
-	err = os.Remove(outputFile)
+	err = os.Remove(outputFilePath)
 	assert.Nil(t, err)
 }
 
-func TestWriter_ShouldOverwrite(t *testing.T) {
+func TestLinesWriter_ShouldWriteCompanies(t *testing.T) {
 	wd, err := os.Getwd()
 	assert.Nil(t, err)
 
-	sut, err := NewJsonWriter(wd)
+	outputFilePath := filepath.Join(wd, "testCompanies.jsonl")
+	_ = os.Remove(outputFilePath)
+
+	sut, err := NewJsonLinesWriter(outputFilePath)
 	assert.Nil(t, err)
 
 	fixedTime, err := time.Parse("2006-01-02", "2019-01-02")
@@ -96,50 +105,32 @@ func TestWriter_ShouldOverwrite(t *testing.T) {
 
 	insertCompanies := getCompanyList(fixedTime)
 
-	outputFile := "testCompany.json"
-	err = sut.WriteJson(insertCompanies, outputFile)
+	for _, company := range insertCompanies {
+		err = sut.AppendLine(company)
+		assert.Nil(t, err)
+	}
+
+	file, err := os.Open(outputFilePath)
 	assert.Nil(t, err)
 
-	jsonByte, _ := ioutil.ReadFile(outputFile)
+	reader := bufio.NewReader(file)
 	var resultCompanies []outboundProviders.Company
-	err = json.Unmarshal(jsonByte, &resultCompanies)
-	assert.Nil(t, err)
+	for {
+		line, err := reader.ReadBytes('\n')
+		if err == io.EOF {
+			err = nil // End of file
+			break
+		}
+		if err != nil {
+			break
+		}
 
-	assert.Equal(t, 2, len(resultCompanies))
+		var resultCompany outboundProviders.Company
+		err = json.Unmarshal(line, &resultCompany)
+		assert.Nil(t, err)
 
-	err = sut.WriteJson(insertCompanies, outputFile)
-	assert.Nil(t, err)
-
-	jsonByte, _ = ioutil.ReadFile(outputFile)
-	var resultCompanies2 []outboundProviders.Company
-	err = json.Unmarshal(jsonByte, &resultCompanies2)
-	assert.Nil(t, err)
-
-	assert.Equal(t, 2, len(resultCompanies2))
-
-	err = os.Remove(outputFile)
-	assert.Nil(t, err)
-}
-
-func TestWriter_ShouldWriteCompanies(t *testing.T) {
-	wd, err := os.Getwd()
-	assert.Nil(t, err)
-
-	sut, err := NewJsonWriter(wd)
-	assert.Nil(t, err)
-
-	fixedTime, err := time.Parse("2006-01-02", "2019-01-02")
-	assert.Nil(t, err)
-
-	insertCompanies := getCompanyList(fixedTime)
-
-	outputFile := "testCompanies.json"
-	err = sut.WriteJson(insertCompanies, outputFile)
-	assert.Nil(t, err)
-
-	jsonByte, _ := ioutil.ReadFile(outputFile)
-	var resultCompanies []outboundProviders.Company
-	err = json.Unmarshal(jsonByte, &resultCompanies)
+		resultCompanies = append(resultCompanies, resultCompany)
+	}
 	assert.Nil(t, err)
 
 	assert.Equal(t, 2, len(resultCompanies))
@@ -161,29 +152,37 @@ func TestWriter_ShouldWriteCompanies(t *testing.T) {
 		}
 	}
 
-	err = os.Remove(outputFile)
+	err = file.Close()
+	assert.Nil(t, err)
+	err = os.Remove(outputFilePath)
 	assert.Nil(t, err)
 }
 
-func TestJsonWriter_ReadJson(t *testing.T) {
-	fixedTime, err := time.Parse("2006-01-02", "2019-01-02")
-	assert.Nil(t, err)
-
+func TestLinesWriter_ShouldReadCompanies(t *testing.T) {
 	wd, err := os.Getwd()
 	assert.Nil(t, err)
 
-	sut, err := NewJsonWriter(wd)
+	outputFilePath := filepath.Join(wd, "testReadCompanies.jsonl")
+	_ = os.Remove(outputFilePath)
+
+	sut, err := NewJsonLinesWriter(outputFilePath)
+	assert.Nil(t, err)
+
+	fixedTime, err := time.Parse("2006-01-02", "2019-01-02")
 	assert.Nil(t, err)
 
 	insertCompanies := getCompanyList(fixedTime)
 
-	outputFile := "readerTest.json"
-	err = sut.WriteJson(insertCompanies, outputFile)
+	for _, company := range insertCompanies {
+		err = sut.AppendLine(company)
+		assert.Nil(t, err)
+	}
+
+	resultCompanies, err := sut.ReadCompanies()
 	assert.Nil(t, err)
 
-	var resultCompanies []outboundProviders.Company
-	err = sut.ReadJson("readerTest.json", &resultCompanies)
-	assert.Nil(t, err)
+	assert.NotEmpty(t, resultCompanies)
+	assert.Equal(t, 2, len(resultCompanies))
 
 	for i, company := range resultCompanies {
 		if company.CompanyName == "companyName" {
@@ -202,6 +201,6 @@ func TestJsonWriter_ReadJson(t *testing.T) {
 		}
 	}
 
-	err = os.Remove(outputFile)
+	err = os.Remove(outputFilePath)
 	assert.Nil(t, err)
 }
