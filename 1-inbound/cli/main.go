@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"path/filepath"
 	"stockCollector/2-core/outboundProviders"
 	"stockCollector/3-outbound/nasdaqProvider"
 	"stockCollector/3-outbound/writer"
@@ -37,27 +38,46 @@ func main() {
 	//	log.Panic(err)
 	//}
 
+	log.Println("Fetching Nasdaq symbols")
 	nasdaq := nasdaqProvider.New(http.Client{})
 	symbols, err := nasdaq.GetAllSymbols()
 	if err != nil {
 		log.Panic(err)
 	}
-
-	companies, err := paralelFetch(symbols[0:5000], 1)
+	log.Println("loaded " + strconv.Itoa(len(symbols)) + " symbols")
 
 	wd, err := os.Getwd()
 	if err != nil {
 		log.Panic(err)
 	}
-	outputWriter, err := writer.NewJsonWriter(wd)
+
+	outputFilePath := filepath.Join(wd, "nasdaqTradedCompanies.json")
+	jsonWriter, err := writer.NewJsonLinesWriter(outputFilePath)
 	if err != nil {
 		log.Panic(err)
 	}
+	defer jsonWriter.Close()
 
-	log.Println("Printing output file")
-	err = outputWriter.WriteJson(companies, "nasdaqTradedCompanies.json")
-	if err != nil {
-		log.Panic(err)
+	for i, symbol := range symbols {
+		progress := fmt.Sprintf("%f", float64(i+1)/float64(len(symbols)))
+		log.Println("processing symbol number " + strconv.Itoa(i + 1) + " (" + symbol + ") - " + progress + "% complete")
+		history, err := nasdaq.GetPriceHistory(symbol)
+		if err != nil {
+			log.Println(err)
+		}
+
+		company := outboundProviders.Company{
+			Symbol:       symbol,
+			PriceHistory: history,
+		}
+
+		err = jsonWriter.AppendLine(company)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		r := rand.Intn(3)
+		time.Sleep(time.Duration(r) * time.Second)
 	}
 }
 

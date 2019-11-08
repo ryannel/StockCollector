@@ -15,13 +15,29 @@ func NewJsonLinesWriter(outputFilePath string) (JsonLinesWriter, error) {
 		return JsonLinesWriter{}, errors.New("output file path must be set")
 	}
 
+	err := os.MkdirAll(filepath.Dir(outputFilePath), os.ModePerm)
+	if err != nil {
+		return JsonLinesWriter{}, err
+	}
+
+	file, err := os.OpenFile(outputFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm)
+	if err != nil {
+		return JsonLinesWriter{}, err
+	}
+
 	return JsonLinesWriter{
 		outputFilePath: outputFilePath,
+		file:           file,
 	}, nil
 }
 
 type JsonLinesWriter struct {
 	outputFilePath string
+	file           *os.File
+}
+
+func (writer JsonLinesWriter) Close() error {
+	return writer.file.Close()
 }
 
 func (writer *JsonLinesWriter) AppendLine(obj interface{}) error {
@@ -29,15 +45,7 @@ func (writer *JsonLinesWriter) AppendLine(obj interface{}) error {
 		return errors.New("output file path must be set")
 	}
 
-	err := os.MkdirAll(filepath.Dir(writer.outputFilePath), os.ModePerm)
-	if err != nil {
-		return err
-	}
-
-	file, _ := os.OpenFile(writer.outputFilePath, os.O_CREATE | os.O_APPEND | os.O_WRONLY, os.ModePerm)
-	defer file.Close()
-
-	encoder := json.NewEncoder(file)
+	encoder := json.NewEncoder(writer.file)
 	return encoder.Encode(obj)
 }
 
