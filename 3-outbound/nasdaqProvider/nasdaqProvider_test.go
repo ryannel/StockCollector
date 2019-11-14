@@ -44,3 +44,20 @@ func TestNasdaqProvider_GetCompanyInfo_ShouldNotBeEmpty(t *testing.T) {
 	assert.NotEmpty(t, company.CompanyName)
 	assert.NotEmpty(t, company.Exchange)
 }
+
+func TestNasdaqProvider_GetInsiderActivity_ShouldNotBeEmpty(t *testing.T) {
+	sut := New(http.Client{})
+	activity, err := sut.GetInsiderActivity("AAPL")
+	assert.Nil(t, err)
+
+	assert.NotEmpty(t, activity)
+
+	assert.NotEmpty(t, activity[0].Insider)
+	assert.NotEmpty(t, activity[0].Relation)
+	assert.NotEmpty(t, activity[0].LastDate)
+	assert.NotEmpty(t, activity[0].LastPrice)
+	assert.NotEmpty(t, activity[0].TransactionType)
+	assert.NotEmpty(t, activity[0].OwnType)
+	assert.NotEmpty(t, activity[0].SharesHeld)
+	assert.NotEmpty(t, activity[0].SharesTraded)
+}

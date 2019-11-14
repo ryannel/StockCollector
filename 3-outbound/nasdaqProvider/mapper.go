@@ -81,3 +81,27 @@ func mapCompanyInfo(src CompanyInfoDto) outboundProviders.Company {
 		Cusip:        "",
 	}
 }
+
+func mapInsiderActivity(src InsiderActivityDto) ([]outboundProviders.InsiderActivity, error) {
+	var result []outboundProviders.InsiderActivity
+
+	for _, item := range src.Data.TransactionTable.Rows {
+		lastDate, err := time.Parse("01/02/2006", item.LastDate)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse insider activity last date: %w", err)
+		}
+
+		result = append(result, outboundProviders.InsiderActivity{
+			Insider:         item.Insider,
+			Relation:        item.Relation,
+			LastDate:        lastDate,
+			TransactionType: item.TransactionType,
+			OwnType:         item.OwnType,
+			SharesTraded:    item.SharesTraded,
+			LastPrice:       item.LastPrice,
+			SharesHeld:      item.SharesHeld,
+		})
+	}
+
+	return result, nil
+}

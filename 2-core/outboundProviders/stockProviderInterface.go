@@ -27,3 +27,14 @@ type Company struct {
 	Cusip        string
 	PriceHistory []StockPriceSnapshot
 }
+
+type InsiderActivity struct {
+	Insider         string `json:"insider"`
+	Relation        string `json:"relation"`
+	LastDate        time.Time `json:"lastDate"`
+	TransactionType string `json:"transactionType"`
+	OwnType         string `json:"ownType"`
+	SharesTraded    string `json:"sharesTraded"`
+	LastPrice       string `json:"lastPrice"`
+	SharesHeld      string `json:"sharesHeld"`
+}

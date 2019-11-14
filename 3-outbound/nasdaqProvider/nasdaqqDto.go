@@ -69,6 +69,25 @@ type CompanyData struct {
 	CompanyDescription KeyValue `json:"CompanyDescription"`
 }
 
+type InsiderActivityDto struct {
+	Data struct {
+		TransactionTable struct {
+			Rows []struct {
+				Insider         string `json:"insider"`
+				Relation        string `json:"relation"`
+				LastDate        string `json:"lastDate"`
+				TransactionType string `json:"transactionType"`
+				OwnType         string `json:"ownType"`
+				SharesTraded    string `json:"sharesTraded"`
+				LastPrice       string `json:"lastPrice"`
+				SharesHeld      string `json:"sharesHeld"`
+			} `json:"rows"`
+		} `json:"transactionTable"`
+	} `json:"data"`
+	Message interface{} `json:"message"`
+	Status  Status `json:"status"`
+}
+
 // ===========================
 // FTP Data Transfer Objects
 // ===========================

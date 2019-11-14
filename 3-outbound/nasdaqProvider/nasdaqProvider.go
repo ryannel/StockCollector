@@ -80,6 +80,35 @@ func (provider *NasdaqProvider) GetPriceHistory(symbol string) ([]outboundProvid
 	return mapStockPriceSnapshots(responseData)
 }
 
+func (provider *NasdaqProvider) GetInsiderActivity(symbol string) ([]outboundProviders.InsiderActivity, error) {
+	urlBuilder, err := helpers.NewUrlBuilder(provider.baseUrl)
+	if err != nil {
+		return nil, fmt.Errorf("error creating URL builder for nasdaq provider - %s : %w", provider.baseUrl, err)
+	}
+
+	urlBuilder.AppendPath(fmt.Sprintf("company/%s/insider-trades", symbol))
+	urlBuilder.AddQueryParameter("limit", "99999")
+	urlBuilder.AddQueryParameter("type", "all")
+
+	requestUrl := urlBuilder.GetUrl()
+	responseBody, err := provider.httpGet(requestUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	var responseData InsiderActivityDto
+	err = json.Unmarshal(responseBody, &responseData)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse json httpResponse from Nasdaq - Error: %w", err)
+	}
+
+	if len(responseData.Status.BCodeMessage) != 0 {
+		return nil, fmt.Errorf("nasdaq error processing request: %s", responseData.Status.BCodeMessage[0].ErrorMessage)
+	}
+
+	return mapInsiderActivity(responseData)
+}
+
 func (provider *NasdaqProvider) httpGet(requestUrl string) ([]byte, error) {
 	httpResponse, err := provider.httpClient.Get(requestUrl)
 	if err != nil {
