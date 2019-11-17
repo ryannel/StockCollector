@@ -51,7 +51,9 @@ func main() {
 		log.Panic(err)
 	}
 
-	outputFilePath := filepath.Join(wd, "nasdaqTradedCompanies.json")
+
+	outputFilePath := filepath.Join(wd, "nasdaqTradedCompanies.jsonl")
+	log.Println("Generating output file: " + outputFilePath)
 	jsonWriter, err := writer.NewJsonLinesWriter(outputFilePath)
 	if err != nil {
 		log.Panic(err)
