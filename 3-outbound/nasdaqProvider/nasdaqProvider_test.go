@@ -16,7 +16,7 @@ func TestNasdaqProvider_GetAllSymbols_ShouldNotBeEmpty(t *testing.T) {
 
 func TestNasdaqProvider_GetPriceHistory_ShouldNotBeEmpty(t *testing.T) {
 	sut := New(http.Client{})
-	history, err := sut.GetPriceHistory("AAPL")
+	history, err := sut.GetStockPriceHistory("AAPL")
 	assert.Nil(t, err)
 
 	assert.NotEmpty(t, history)
@@ -29,7 +29,7 @@ func TestNasdaqProvider_GetPriceHistory_ShouldNotBeEmpty(t *testing.T) {
 
 func TestNasdaqProvider_GetPriceHistory_GivenBadSymbol_ShouldError(t *testing.T) {
 	sut := New(http.Client{})
-	_, err := sut.GetPriceHistory("asdfasdfvxcv")
+	_, err := sut.GetStockPriceHistory("asdfasdfvxcv")
 	assert.NotNil(t, err)
 }
 

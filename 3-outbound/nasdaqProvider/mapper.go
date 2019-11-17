@@ -69,16 +69,15 @@ func cleanFloatStrings(value string) (float64, error) {
 	return result, err
 }
 
-func mapCompanyInfo(src CompanyInfoDto) outboundProviders.Company {
+func mapCompanyInfo(src CompanyInfoDto) outboundProviders.CompanyInfo {
 	data := src.Data
 
-	return outboundProviders.Company{
+	return outboundProviders.CompanyInfo{
 		CompanyName: data.CompanyName.Value,
 		Industry:     data.Industry.Value,
 		Sector:       data.Sector.Value,
 		Symbol:       data.Symbol.Value,
 		Exchange:     "NASDAQ",
-		Cusip:        "",
 	}
 }
 

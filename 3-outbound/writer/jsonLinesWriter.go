@@ -49,7 +49,7 @@ func (writer *JsonLinesWriter) AppendLine(obj interface{}) error {
 	return encoder.Encode(obj)
 }
 
-func (writer *JsonLinesWriter) ReadCompanies() ([]outboundProviders.Company, error) {
+func (writer *JsonLinesWriter) ReadCompanies() ([]outboundProviders.CompanyInfo, error) {
 	if writer.outputFilePath == "" {
 		return nil, errors.New("output file path must be set")
 	}
@@ -61,7 +61,7 @@ func (writer *JsonLinesWriter) ReadCompanies() ([]outboundProviders.Company, err
 	defer file.Close()
 
 	reader := bufio.NewReader(file)
-	var results []outboundProviders.Company
+	var results []outboundProviders.CompanyInfo
 	for {
 		line, err := reader.ReadBytes('\n')
 		if err == io.EOF {
@@ -72,7 +72,7 @@ func (writer *JsonLinesWriter) ReadCompanies() ([]outboundProviders.Company, err
 			break
 		}
 
-		company := outboundProviders.Company{}
+		company := outboundProviders.CompanyInfo{}
 		err = json.Unmarshal(line, &company)
 		if err != nil {
 			return nil, err

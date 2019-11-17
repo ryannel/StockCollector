@@ -5,8 +5,17 @@ import (
 )
 
 type StockProviderInterface interface {
-	GetDailyStockPriceHistory20y(symbol string) ([]StockPriceSnapshot, error)
-	GetDailyStockPriceHistory20d(symbol string) ([]StockPriceSnapshot, error)
+	GetCompanyInfo(symbol string) (CompanyInfo, error)
+	GetStockPriceHistory(symbol string) ([]StockPriceSnapshot, error)
+	GetInsiderActivity(symbol string) ([]InsiderActivity, error)
+}
+
+type CompanyInfo struct {
+	CompanyName  string
+	Industry     string
+	Sector       string
+	Symbol       string
+	Exchange     string
 }
 
 type StockPriceSnapshot struct {
@@ -18,23 +27,13 @@ type StockPriceSnapshot struct {
 	Volume   int
 }
 
-type Company struct {
-	CompanyName  string
-	Industry     string
-	Sector       string
-	Symbol       string
-	Exchange     string
-	Cusip        string
-	PriceHistory []StockPriceSnapshot
-}
-
 type InsiderActivity struct {
-	Insider         string `json:"insider"`
-	Relation        string `json:"relation"`
-	LastDate        time.Time `json:"lastDate"`
-	TransactionType string `json:"transactionType"`
-	OwnType         string `json:"ownType"`
-	SharesTraded    string `json:"sharesTraded"`
-	LastPrice       string `json:"lastPrice"`
-	SharesHeld      string `json:"sharesHeld"`
+	Insider         string
+	Relation        string
+	LastDate        time.Time
+	TransactionType string
+	OwnType         string
+	SharesTraded    string
+	LastPrice       string
+	SharesHeld      string
 }

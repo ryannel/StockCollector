@@ -14,8 +14,6 @@ import (
 	"time"
 )
 
-
-
 func New(httpClient http.Client) NasdaqProvider {
 	return NasdaqProvider{
 		baseUrl: "https://api.nasdaq.com/api/",
@@ -28,29 +26,29 @@ type NasdaqProvider struct {
 	baseUrl string
 }
 
-func (provider *NasdaqProvider) GetCompanyInfo(symbol string) (outboundProviders.Company, error) {
+func (provider *NasdaqProvider) GetCompanyInfo(symbol string) (outboundProviders.CompanyInfo, error) {
 	urlBuilder, err := helpers.NewUrlBuilder(provider.baseUrl)
 	if err != nil {
-		return outboundProviders.Company{}, fmt.Errorf("error creating URL builder for nasdaq provider - %s : %w", provider.baseUrl, err)
+		return outboundProviders.CompanyInfo{}, fmt.Errorf("error creating URL builder for nasdaq provider - %s : %w", provider.baseUrl, err)
 	}
 	urlBuilder.AppendPath(fmt.Sprintf("company/%s/company-profile", symbol))
 
 	requestUrl := urlBuilder.GetUrl()
 	responseBody, err := provider.httpGet(requestUrl)
 	if err != nil {
-		return outboundProviders.Company{}, err
+		return outboundProviders.CompanyInfo{}, err
 	}
 
 	var responseData CompanyInfoDto
 	err = json.Unmarshal(responseBody, &responseData)
 	if err != nil {
-		return outboundProviders.Company{}, fmt.Errorf("unable to parse json httpResponse from Nasdaq - Error: %w", err)
+		return outboundProviders.CompanyInfo{}, fmt.Errorf("unable to parse json httpResponse from Nasdaq - Error: %w", err)
 	}
 
 	return mapCompanyInfo(responseData), nil
 }
 
-func (provider *NasdaqProvider) GetPriceHistory(symbol string) ([]outboundProviders.StockPriceSnapshot, error) {
+func (provider *NasdaqProvider) GetStockPriceHistory(symbol string) ([]outboundProviders.StockPriceSnapshot, error) {
 	urlBuilder, err := helpers.NewUrlBuilder(provider.baseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("error creating URL builder for nasdaq provider - %s : %w", provider.baseUrl, err)

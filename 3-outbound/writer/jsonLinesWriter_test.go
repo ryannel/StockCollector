@@ -25,7 +25,7 @@ func TestLinesWriter_ShouldWriteCompany(t *testing.T) {
 	fixedTime, err := time.Parse("2006-01-02", "2019-01-02")
 	assert.Nil(t, err)
 
-	insertCmp := outboundProviders.Company{
+	insertCmp := outboundProviders.CompanyInfo{
 		CompanyName:  "companyName",
 		Industry:     "industry",
 		Sector:       "sector",
@@ -58,7 +58,7 @@ func TestLinesWriter_ShouldWriteCompany(t *testing.T) {
 	jsonByte, err := ioutil.ReadFile(outputFilePath)
 	assert.Nil(t, err)
 
-	var resultCompany outboundProviders.Company
+	var resultCompany outboundProviders.CompanyInfo
 	err = json.Unmarshal(jsonByte, &resultCompany)
 	assert.Nil(t, err)
 
@@ -114,7 +114,7 @@ func TestLinesWriter_ShouldWriteCompanies(t *testing.T) {
 	assert.Nil(t, err)
 
 	reader := bufio.NewReader(file)
-	var resultCompanies []outboundProviders.Company
+	var resultCompanies []outboundProviders.CompanyInfo
 	for {
 		line, err := reader.ReadBytes('\n')
 		if err == io.EOF {
@@ -125,7 +125,7 @@ func TestLinesWriter_ShouldWriteCompanies(t *testing.T) {
 			break
 		}
 
-		var resultCompany outboundProviders.Company
+		var resultCompany outboundProviders.CompanyInfo
 		err = json.Unmarshal(line, &resultCompany)
 		assert.Nil(t, err)
 

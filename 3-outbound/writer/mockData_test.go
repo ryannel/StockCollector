@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-func getCompanyList(fixedTime time.Time) []outboundProviders.Company {
-	return []outboundProviders.Company{
+func getCompanyList(fixedTime time.Time) []outboundProviders.CompanyInfo {
+	return []outboundProviders.CompanyInfo{
 		{
 			CompanyName:  "companyName",
 			Industry:     "industry",

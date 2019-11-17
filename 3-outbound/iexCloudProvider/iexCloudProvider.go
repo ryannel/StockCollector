@@ -34,23 +34,23 @@ type IexCloudProvider struct {
 	baseUrl string
 }
 
-func (provider IexCloudProvider) GetCompanyInfo(symbol string) (outboundProviders.Company, error) {
+func (provider IexCloudProvider) GetCompanyInfo(symbol string) (outboundProviders.CompanyInfo, error) {
 	urlBuilder, err := helpers.NewUrlBuilder(provider.baseUrl)
 	if err != nil {
-		return outboundProviders.Company{}, fmt.Errorf("error creating URL builder for IexCloud provider - %s : %w", provider.baseUrl, err)
+		return outboundProviders.CompanyInfo{}, fmt.Errorf("error creating URL builder for IexCloud provider - %s : %w", provider.baseUrl, err)
 	}
 	urlBuilder.AppendPath(fmt.Sprintf("stock/%s/company", symbol))
 
 	requestUrl := urlBuilder.GetUrl()
 	responseBody, err := provider.httpGet(requestUrl)
 	if err != nil {
-		return outboundProviders.Company{}, err
+		return outboundProviders.CompanyInfo{}, err
 	}
 
 	var responseData CompanyDto
 	err = json.Unmarshal(responseBody, &responseData)
 	if err != nil {
-		return outboundProviders.Company{}, fmt.Errorf("unable to parse json httpResponse from IEX Cloud - Error: %w", err)
+		return outboundProviders.CompanyInfo{}, fmt.Errorf("unable to parse json httpResponse from IEX Cloud - Error: %w", err)
 	}
 
 	return mapCompany(responseData)

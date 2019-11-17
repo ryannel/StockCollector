@@ -27,8 +27,8 @@ func mapStockPriceSnapshots(src []StockPriceSnapshotDto) ([]outboundProviders.St
 	return results, nil
 }
 
-func mapCompany(company CompanyDto) (outboundProviders.Company, error) {
-	return outboundProviders.Company{
+func mapCompany(company CompanyDto) (outboundProviders.CompanyInfo, error) {
+	return outboundProviders.CompanyInfo{
 		CompanyName:  company.CompanyName,
 		Industry:     company.Industry,
 		Sector:       company.Sector,

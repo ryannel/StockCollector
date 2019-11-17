@@ -20,7 +20,7 @@ func TestWriter_ShouldWriteCompany(t *testing.T) {
 	fixedTime, err := time.Parse("2006-01-02", "2019-01-02")
 	assert.Nil(t, err)
 
-	insertCmp := outboundProviders.Company{
+	insertCmp := outboundProviders.CompanyInfo{
 		CompanyName:  "companyName",
 		Industry:     "industry",
 		Sector:       "sector",
@@ -52,7 +52,7 @@ func TestWriter_ShouldWriteCompany(t *testing.T) {
 	assert.Nil(t, err)
 
 	jsonByte, _ := ioutil.ReadFile(outputFile)
-	var resultCompany outboundProviders.Company
+	var resultCompany outboundProviders.CompanyInfo
 	err = json.Unmarshal(jsonByte, &resultCompany)
 	assert.Nil(t, err)
 
@@ -101,7 +101,7 @@ func TestWriter_ShouldOverwrite(t *testing.T) {
 	assert.Nil(t, err)
 
 	jsonByte, _ := ioutil.ReadFile(outputFile)
-	var resultCompanies []outboundProviders.Company
+	var resultCompanies []outboundProviders.CompanyInfo
 	err = json.Unmarshal(jsonByte, &resultCompanies)
 	assert.Nil(t, err)
 
@@ -111,7 +111,7 @@ func TestWriter_ShouldOverwrite(t *testing.T) {
 	assert.Nil(t, err)
 
 	jsonByte, _ = ioutil.ReadFile(outputFile)
-	var resultCompanies2 []outboundProviders.Company
+	var resultCompanies2 []outboundProviders.CompanyInfo
 	err = json.Unmarshal(jsonByte, &resultCompanies2)
 	assert.Nil(t, err)
 
@@ -138,7 +138,7 @@ func TestWriter_ShouldWriteCompanies(t *testing.T) {
 	assert.Nil(t, err)
 
 	jsonByte, _ := ioutil.ReadFile(outputFile)
-	var resultCompanies []outboundProviders.Company
+	var resultCompanies []outboundProviders.CompanyInfo
 	err = json.Unmarshal(jsonByte, &resultCompanies)
 	assert.Nil(t, err)
 
@@ -181,7 +181,7 @@ func TestJsonWriter_ReadJson(t *testing.T) {
 	err = sut.WriteJson(insertCompanies, outputFile)
 	assert.Nil(t, err)
 
-	var resultCompanies []outboundProviders.Company
+	var resultCompanies []outboundProviders.CompanyInfo
 	err = sut.ReadJson("readerTest.json", &resultCompanies)
 	assert.Nil(t, err)
 

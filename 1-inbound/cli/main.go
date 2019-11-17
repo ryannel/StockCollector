@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"stockCollector/2-core/outboundProviders"
+	"stockCollector/2-core/models"
 	"stockCollector/3-outbound/nasdaqProvider"
 	"stockCollector/3-outbound/writer"
 	"strconv"
@@ -59,19 +59,15 @@ func main() {
 	defer jsonWriter.Close()
 
 	for i, symbol := range symbols {
-		progress := fmt.Sprintf("%f", float64(i+1)/float64(len(symbols)))
+		progress := fmt.Sprintf("%f", float64(i+1)/float64(len(symbols)) * 100)
 		log.Println("processing symbol number " + strconv.Itoa(i + 1) + " (" + symbol + ") - " + progress + "% complete")
-		history, err := nasdaq.GetPriceHistory(symbol)
+
+		corp, err := models.NewCorporation(symbol, &nasdaq)
 		if err != nil {
 			log.Println(err)
 		}
 
-		company := outboundProviders.Company{
-			Symbol:       symbol,
-			PriceHistory: history,
-		}
-
-		err = jsonWriter.AppendLine(company)
+		err = jsonWriter.AppendLine(corp)
 		if err != nil {
 			log.Panic(err)
 		}
@@ -82,11 +78,11 @@ func main() {
 }
 
 type Result struct {
-	Company outboundProviders.Company
+	Corporation models.Corporation
 	Err error
 }
 
-func paralelFetch(symbols []string, concurrency int) ([]outboundProviders.Company, error) {
+func paralelFetch(symbols []string, concurrency int) ([]models.Corporation, error) {
 	numSymbols := len(symbols)
 	jobsChan := make(chan string, numSymbols)
 	resultsChan := make(chan Result, numSymbols)
@@ -100,13 +96,13 @@ func paralelFetch(symbols []string, concurrency int) ([]outboundProviders.Compan
 	}
 	close(jobsChan)
 
-	companies := make([]outboundProviders.Company, numSymbols)
+	companies := make([]models.Corporation, numSymbols)
 	for i := 1; i <= numSymbols; i++ {
 		result := <- resultsChan
 		if result.Err != nil {
-			log.Println("error loading price history for: " + result.Company.Symbol + " - " + result.Err.Error())
+			log.Println("error loading price history for: " + result.Corporation.Stocks[0].Symbol + " - " + result.Err.Error())
 		} else {
-			companies = append(companies, result.Company)
+			companies = append(companies, result.Corporation)
 		}
 	}
 
@@ -118,15 +114,10 @@ func worker(jobChan <- chan string, resultChan chan <- Result) {
 
 	for symbol := range jobChan {
 		log.Println("fetching price history for: " + symbol)
-		history, err := nasdaq.GetPriceHistory(symbol)
-
-		company := outboundProviders.Company{
-			Symbol:       symbol,
-			PriceHistory: history,
-		}
+		corp, err := models.NewCorporation(symbol, &nasdaq)
 
 		resultChan <- Result{
-			Company: company,
+			Corporation: corp,
 			Err: err,
 		}
 
