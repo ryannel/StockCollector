@@ -67,6 +67,7 @@ func main() {
 		corp, err := models.NewCorporation(symbol, &nasdaq)
 		if err != nil {
 			log.Println(err)
+			continue
 		}
 
 		err = jsonWriter.AppendLine(corp)
